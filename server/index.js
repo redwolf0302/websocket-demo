@@ -10,8 +10,11 @@ const http = require('http');
 const launch = (port = 8080) => {
     const app = new express();
     const server = http.createServer(app);
-
+    app.all('/', (req, res) => {
+        res.send('Welcome to Websocket Demo Site');
+    });
     const wss = new WebSocket.Server({
+        path: '/chat',
         server
     });
     wss.on("connection", function (ws) {
