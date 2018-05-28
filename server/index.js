@@ -3,14 +3,6 @@ const express = require('express');
 const http = require('http');
 const url = require('url');
 
-function heartbeat() {
-    this.isAlive = true;
-}
-
-function onClose() {
-    console.log(arguments)
-}
-
 function noop() {}
 /**
  * @author Evan redwolf0302@gmail.com
@@ -28,6 +20,22 @@ const launch = () => {
         path: '/chat',
         server
     });
+
+    function heartbeat() {
+        this.isAlive = true;
+    }
+
+    function handleClose() {
+        console.log(arguments)
+    }
+
+    function handleMessage(data) {
+        wss.clients.forEach((ws) => {
+            if (ws !== this) {
+                ws.send(data);
+            }
+        });
+    }
     wss.on("connection", (ws, req) => {
         const {
             query: {
@@ -40,11 +48,12 @@ const launch = () => {
         ws.nick = nick;
         console.log(`client ${ws.userId}#${ws.nick} has connected`);
         ws.on('pong', heartbeat);
-        ws.on('close', onClose);
+        ws.on('close', handleClose);
+        ws.on('message', handleMessage);
     });
     const interval = setInterval(function ping() {
         wss.clients.forEach(function each(ws) {
-            console.log(`client ${ws.userId}#${ws.nick} is alive:${ws.isAlive}`);
+            // console.log(`client ${ws.userId}#${ws.nick} is alive:${ws.isAlive}`);
             if (ws.isAlive === false) {
                 console.warn(`client ${ws.userId}#${ws.nick} is terminated`);
                 return ws.terminate();

@@ -103,43 +103,87 @@ const DEFAULT_AVATARS = ['T1j.DTByJT1RCvBVdK.jpg',
     'T1UoYTByhT1RCvBVdK.jpg'
 ];
 const DEFAULT_AVATARS_LEN = DEFAULT_AVATARS.length;
+const OPCODES = {
+    GROUP: 1,
+    COMMAND: 2
+};
 
 function onOpen() {
-    console.log(arguments)
+    app.isConnected = true;
 }
 
 function onClose() {
-    console.log(arguments)
+    app.isConnected = false;
 }
 
-function onMessage() {
-    console.log(arguments)
+function onMessage(event) {
+    app.messages.push(JSON.parse(event.data));
 }
 
 function onError() {
-    console.log(arguments)
+    app.isConnected = false;
 }
 let app = new Vue({
     el: '#app-view',
     data: {
         isConnected: false,
-        userId: 12,
+        userId: 1000,
         nick: 'Evan',
         message: null,
         messages: [{
-                id: 13,
+                userId: 13,
                 nick: '小辉辉',
                 content: '我是一条消息啊啊啊啊啊啊啊啊啊啊啊啊 啊啊啊！'
             },
             {
-                id: 12,
+                userId: 12,
                 nick: '小辉辉',
                 content: '我是一条消息啊啊啊啊啊啊啊啊啊啊啊啊 啊啊啊！'
             },
             {
-                id: 13,
+                userId: 14,
                 nick: '小辉辉',
                 content: '我是一条消息啊啊啊啊啊啊啊啊啊啊啊啊 啊啊啊！'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
+            },
+            {
+                userId: 1000,
+                nick: 'Evan',
+                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
             }
         ],
     },
@@ -150,13 +194,27 @@ let app = new Vue({
             ws.addEventListener('close', onClose);
             ws.addEventListener('message', onMessage);
             ws.addEventListener('error', onError);
-            app.isConnected = true;
+            // app.isConnected = true;
         },
         disconnect: function () {
             if (ws) {
                 ws.close(3001, 'logout');
             }
-            app.isConnected = false;
+            // app.isConnected = false;
+        },
+        sendMessage: function () {
+            let willSendMessage = {
+                userId: app.userId,
+                nick: app.nick,
+                content: app.message,
+                opcode: OPCODES.GROUP
+            };
+            app.messages.push(willSendMessage);
+            app.message = null;
+            ws.send(JSON.stringify(willSendMessage));
+        },
+        obtainAvatar: function (userId) {
+            return `http://static.jk.cn/${DEFAULT_AVATARS[userId % DEFAULT_AVATARS_LEN]}`;
         }
     }
 });

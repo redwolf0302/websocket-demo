@@ -31,11 +31,11 @@
                 <button v-if="isConnected" @click="disconnect" type="button" class="btn btn-danger col ml-2">登出</button>
             </div>
         </form>
-        <div class="chat-content mb-2">
+        <div id="chat-content" class="chat-content mb-2">
             <div v-for="message in messages" class="es-message-item">
-                <div class="es-base-message-box cursor-pointer" v-bind:class="{'es-message-alt':message.id===userId}">
+                <div class="es-base-message-box cursor-pointer" v-bind:class="{'es-message-alt':message.userId===userId}">
                     <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
-                        <img src="//static.jk.cn/T18.YTByhT1RCvBVdK_30x30.jpg" class="es-avatar-img">
+                        <img v-bind:src="obtainAvatar(message.userId)" class="es-avatar-img">
                     </div>
                     <div class="es-message-body">
                         <div>{{message.content}}</div>
@@ -48,7 +48,7 @@
                 <div class="col col-10">
                     <input type="text" v-bind:disabled="!isConnected" class="form-control" placeholder="请输入发送内容" v-model="message">
                 </div>
-                <button @click="disconnect" type="button" class="btn btn-primary col ml-2">发送</button>
+                <button @click="sendMessage" type="button" class="btn btn-primary col ml-2">发送</button>
             </div>
         </form>
     </div>
