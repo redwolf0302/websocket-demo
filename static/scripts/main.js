@@ -194,7 +194,7 @@ let app = new Vue({
                 },
                 opcode: OPCODES.GROUP
             };
-            this.messages.push(willSendMessage);
+            this.messages.push(willSendMessage.payload);
             this.message = null;
             ws.send(JSON.stringify(willSendMessage));
         },
