@@ -105,87 +105,49 @@ const DEFAULT_AVATARS = ['T1j.DTByJT1RCvBVdK.jpg',
 const DEFAULT_AVATARS_LEN = DEFAULT_AVATARS.length;
 const OPCODES = {
     GROUP: 1,
-    COMMAND: 2
+    COMMAND: 2,
+    WHOAMI: 3,
+    CLIENT_LEFT: 4
 };
 
-function onOpen() {
+function onOpen(event) {
     app.isConnected = true;
+    app.loadUsers();
+    app.addUser(app.userId, app.nick);
 }
 
-function onClose() {
+function onClose(event) {
     app.isConnected = false;
+    app.removeUser(app.userId);
 }
 
 function onMessage(event) {
-    app.messages.push(JSON.parse(event.data));
+    let message = JSON.parse(event.data);
+    switch (message.opcode) {
+        case OPCODES.GROUP:
+            app.messages.push(message.payload);
+            break;
+        case OPCODES.WHOAMI:
+            app.addUser(message.payload.userId, message.payload.nick);
+            break;
+        case OPCODES.CLIENT_LEFT:
+            app.removeUser(message.payload.userId);
+            break;
+    }
 }
 
-function onError() {
+function onError(event) {
     app.isConnected = false;
 }
 let app = new Vue({
     el: '#app-view',
     data: {
         isConnected: false,
-        userId: 1000,
-        nick: 'Evan',
+        userId: null,
+        nick: null,
         message: null,
-        messages: [{
-                userId: 13,
-                nick: '小辉辉',
-                content: '我是一条消息啊啊啊啊啊啊啊啊啊啊啊啊 啊啊啊！'
-            },
-            {
-                userId: 12,
-                nick: '小辉辉',
-                content: '我是一条消息啊啊啊啊啊啊啊啊啊啊啊啊 啊啊啊！'
-            },
-            {
-                userId: 14,
-                nick: '小辉辉',
-                content: '我是一条消息啊啊啊啊啊啊啊啊啊啊啊啊 啊啊啊！'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            },
-            {
-                userId: 1000,
-                nick: 'Evan',
-                content: '另外 我们的标题格式为：【拟诊标签】+主诉（处理后的）+平安好医生 拟诊标签的字数一般≤6 问题1：这种格式，百度是否认为合理？ 问题2：如果合理，刚才说的主诉长度需要再减11个字左右'
-            }
-        ],
+        messages: [],
+        users: []
     },
     methods: {
         connect: function () {
@@ -194,7 +156,6 @@ let app = new Vue({
             ws.addEventListener('close', onClose);
             ws.addEventListener('message', onMessage);
             ws.addEventListener('error', onError);
-            // app.isConnected = true;
         },
         disconnect: function () {
             if (ws) {
@@ -202,17 +163,44 @@ let app = new Vue({
             }
             // app.isConnected = false;
         },
+        loadUsers: function () {
+            axios
+                .get('/api/users')
+                .then(res => {
+                    this.users = res.data;
+                });
+        },
+        addUser: function (userId, nick) {
+            this.users.push({
+                userId: userId,
+                nick: nick
+            });
+        },
+        removeUser: function (userId) {
+            let pos = this.users.findIndex(u => u.userId === userId);
+            if (pos !== -1) {
+                this.users.splice(pos, 1);
+            }
+        },
+        /**
+         * 发送消息
+         */
         sendMessage: function () {
             let willSendMessage = {
-                userId: app.userId,
-                nick: app.nick,
-                content: app.message,
+                payload: {
+                    userId: app.userId,
+                    nick: app.nick,
+                    content: app.message
+                },
                 opcode: OPCODES.GROUP
             };
-            app.messages.push(willSendMessage);
-            app.message = null;
+            this.messages.push(willSendMessage);
+            this.message = null;
             ws.send(JSON.stringify(willSendMessage));
         },
+        /**
+         * 获取用户头像
+         */
         obtainAvatar: function (userId) {
             return `http://static.jk.cn/${DEFAULT_AVATARS[userId % DEFAULT_AVATARS_LEN]}`;
         }

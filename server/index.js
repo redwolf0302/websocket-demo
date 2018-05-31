@@ -2,6 +2,12 @@ const WebSocket = require("ws");
 const express = require('express');
 const http = require('http');
 const url = require('url');
+const OPCODES = {
+    GROUP: 1,
+    COMMAND: 2,
+    WHOAMI: 3,
+    CLIENT_LEFT: 4
+};
 
 function noop() {}
 /**
@@ -21,21 +27,59 @@ const launch = () => {
         server
     });
 
+    app.get('/api/users', (req, res) => {
+        let users = [];
+        wss.clients.forEach(ws => {
+            users.push({
+                userId: ws.userId,
+                nick: ws.nick
+            })
+        });
+        res.json(users);
+    });
+
     function heartbeat() {
         this.isAlive = true;
     }
 
-    function handleClose() {
-        console.log(arguments)
+    function handleClose(code, reason) {
+        console.log(`client ${this.userId}#${this.nick} is disconnected. (code:${code}, reason:${reason})`)
+        wss.clients.forEach(ws => {
+            if (ws !== this) {
+                ws.send(JSON.stringify({
+                    payload: {
+                        userId: this.userId,
+                        nick: this.nick
+                    },
+                    opcode: OPCODES.CLIENT_LEFT
+                }));
+            }
+        });
     }
 
     function handleMessage(data) {
-        wss.clients.forEach((ws) => {
+        wss.clients.forEach(ws => {
             if (ws !== this) {
                 ws.send(data);
             }
         });
     }
+
+    function sayHello(self) {
+        let helloFrame = {
+            opcode: OPCODES.WHOAMI,
+            payload: {
+                userId: self.userId,
+                nick: self.nick
+            }
+        }
+        wss.clients.forEach(ws => {
+            if (ws !== self) {
+                ws.send(JSON.stringify(helloFrame));
+            }
+        });
+    }
+
     wss.on("connection", (ws, req) => {
         const {
             query: {
@@ -50,17 +94,17 @@ const launch = () => {
         ws.on('pong', heartbeat);
         ws.on('close', handleClose);
         ws.on('message', handleMessage);
+        sayHello(ws);
     });
     const interval = setInterval(function ping() {
         wss.clients.forEach(function each(ws) {
-            // console.log(`client ${ws.userId}#${ws.nick} is alive:${ws.isAlive}`);
             if (ws.isAlive === false) {
                 console.warn(`client ${ws.userId}#${ws.nick} is terminated`);
                 return ws.terminate();
             }
             ws.isAlive = false;
             ws.ping(noop);
-            ws.send('hello');
+            // ws.send('hello');
         });
     }, 30000);
     //启动服务

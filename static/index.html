@@ -11,46 +11,65 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/msg.css" />
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
-    <div id="app-view" class="chat-container container espresso">
+    <div id="app-view" class="container espresso">
         <h1 class="text-center">WebSocket Demo</h1>
-        <form class="form mb-2">
-            <div class="row">
-                <div v-if="!isConnected" class="col col-5">
-                    <input type="text" class="form-control" placeholder="ID" v-model="userId">
-                </div>
-                <div v-if="!isConnected" class="col col-5 ml-2">
-                    <input type="text" class="form-control" placeholder="昵称" v-model="nick">
-                </div>
-                <div v-if="isConnected" class="col col-10">
-                    <input type="text" readonly class="form-control-plaintext" v-bind:value="nick+'#'+userId">
-                </div>
-                <button v-if="!isConnected" @click="connect" type="button" class="btn btn-success col ml-2">登录</button>
-                <button v-if="isConnected" @click="disconnect" type="button" class="btn btn-danger col ml-2">登出</button>
-            </div>
-        </form>
-        <div id="chat-content" class="chat-content mb-2">
-            <div v-for="message in messages" class="es-message-item">
-                <div class="es-base-message-box cursor-pointer" v-bind:class="{'es-message-alt':message.userId===userId}">
+        <div class="row">
+            <!-- User List BEGIN-->
+            <div class="col user-list">
+                <div class="user-item" v-for="user in users">
                     <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
-                        <img v-bind:src="obtainAvatar(message.userId)" class="es-avatar-img">
+                        <img v-bind:src="obtainAvatar(user.userId)" class="es-avatar-img">
                     </div>
-                    <div class="es-message-body">
-                        <div>{{message.content}}</div>
-                    </div>
+                    <p>{{user.nick}}</p>
                 </div>
             </div>
+            <!-- User List END-->
+
+            <!--Chat BEGIN-->
+            <div class="col chat-container">
+                <form class="form mb-2">
+                    <div class="row">
+                        <div v-if="!isConnected" class="col col-5">
+                            <input type="text" class="form-control" placeholder="ID" v-model="userId">
+                        </div>
+                        <div v-if="!isConnected" class="col col-5 ml-2">
+                            <input type="text" class="form-control" placeholder="昵称" v-model="nick">
+                        </div>
+                        <div v-if="isConnected" class="col col-10">
+                            <input type="text" readonly class="form-control-plaintext" v-bind:value="nick+'#'+userId">
+                        </div>
+                        <button v-if="!isConnected" @click="connect" type="button" class="btn btn-success col ml-2">登录</button>
+                        <button v-if="isConnected" @click="disconnect" type="button" class="btn btn-danger col ml-2">登出</button>
+                    </div>
+                </form>
+                <div id="chat-content" class="chat-content mb-2">
+                    <div v-for="message in messages" class="es-message-item">
+                        <div class="es-base-message-box cursor-pointer" v-bind:class="{'es-message-alt':message.userId===userId}">
+                            <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
+                                <img v-bind:src="obtainAvatar(message.userId)" class="es-avatar-img">
+                            </div>
+                            <div class="es-message-body">
+                                <div>{{message.content}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form class="form">
+                    <div class="row">
+                        <div class="col col-10">
+                            <input type="text" v-bind:disabled="!isConnected" class="form-control" placeholder="请输入发送内容" v-model="message">
+                        </div>
+                        <button @click="sendMessage" type="button" class="btn btn-primary col ml-2">发送</button>
+                    </div>
+                </form>
+
+            </div>
+            <!--Chat END-->
         </div>
-        <form class="form">
-            <div class="row">
-                <div class="col col-10">
-                    <input type="text" v-bind:disabled="!isConnected" class="form-control" placeholder="请输入发送内容" v-model="message">
-                </div>
-                <button @click="sendMessage" type="button" class="btn btn-primary col ml-2">发送</button>
-            </div>
-        </form>
     </div>
     <script src="scripts/main.js"></script>
 </body>
