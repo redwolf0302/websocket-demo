@@ -1,5 +1,5 @@
 let ws = null;
-let WEBSOCKET_URL = 'ws://localhost:8080/chat';
+let WEBSOCKET_URL = 'ws://ws-demo.nightelf.org/chat';
 
 const DEFAULT_AVATARS = ['T1j.DTByJT1RCvBVdK.jpg',
     'T18.YTByhT1RCvBVdK.jpg',
