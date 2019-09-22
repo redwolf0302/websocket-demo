@@ -232,7 +232,7 @@ let app = new Vue({
           opcode: OPCODES.COMMAND
         };
         ws.send(JSON.stringify(willSendMessage));
-      }, 500);
+      }, 50);
       app.testing = true;
     },
     stopTesting: function() {

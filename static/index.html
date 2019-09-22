@@ -27,7 +27,8 @@
                 </div>
                 <div class="user-item" v-for="user in users">
                     <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
-                        <img v-bind:src="obtainAvatar(user.userId)" class="es-avatar-img">
+                        <img class="es-avatar-img"
+                            v-bind:style="{backgroundImage: 'url('+obtainAvatar(user.userId)+')'}">
                     </div>
                     <p>{{user.nick}}</p>
                 </div>
@@ -47,7 +48,8 @@
                         <div v-if="isConnected" class="col col-10 user-item">
                             <div class="es-avatar"
                                 style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
-                                <img v-bind:src="obtainAvatar(userId)" class="es-avatar-img">
+                                <img class="es-avatar-img"
+                                    v-bind:style="{backgroundImage: 'url('+obtainAvatar(userId)+')'}">
                             </div>
                             <input type="text" readonly class="form-control-plaintext" v-bind:value="nick+'#'+userId">
                         </div>
@@ -63,7 +65,8 @@
                             v-bind:class="{'es-message-alt':message.userId===userId}">
                             <div class="es-avatar"
                                 style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
-                                <img v-bind:src="obtainAvatar(message.userId)" class="es-avatar-img">
+                                <img class="es-avatar-img"
+                                    v-bind:style="{backgroundImage: 'url('+obtainAvatar(message.userId)+')'}">
                             </div>
                             <div class="es-message-body">
                                 <div>{{message.content}}</div>
