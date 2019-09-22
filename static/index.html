@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8">
     <title>WebSocket Demo</title>
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, height=device-height">
+    <meta name="viewport"
+        content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, height=device-height">
     <meta name="format-detection" content="telephone=no" />
     <link rel="shortcut icon" href="images/logo.png">
     <link rel="stylesheet" href="styles/bootstrap.min.css" />
@@ -20,6 +21,10 @@
         <div class="row">
             <!-- User List BEGIN-->
             <div class="col user-list">
+                <div style="margin-bottom: 10px;">
+                    <button v-if="!testing" class="btn btn-success btn-sm" @click="startTesting">开始压测</button>
+                    <button v-if="testing" class="btn btn-danger btn-sm" @click="stopTesting">结束压测</button>
+                </div>
                 <div class="user-item" v-for="user in users">
                     <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
                         <img v-bind:src="obtainAvatar(user.userId)" class="es-avatar-img">
@@ -40,19 +45,24 @@
                             <input type="text" class="form-control" placeholder="昵称" v-model="nick">
                         </div>
                         <div v-if="isConnected" class="col col-10 user-item">
-                            <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
+                            <div class="es-avatar"
+                                style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
                                 <img v-bind:src="obtainAvatar(userId)" class="es-avatar-img">
                             </div>
                             <input type="text" readonly class="form-control-plaintext" v-bind:value="nick+'#'+userId">
                         </div>
-                        <button v-if="!isConnected" @click="connect" type="button" class="btn btn-success col ml-2">登录</button>
-                        <button v-if="isConnected" @click="disconnect" type="button" class="btn btn-danger col ml-2">登出</button>
+                        <button v-if="!isConnected" @click="connect" type="button"
+                            class="btn btn-success col ml-2">登录</button>
+                        <button v-if="isConnected" @click="disconnect" type="button"
+                            class="btn btn-danger col ml-2">登出</button>
                     </div>
                 </form>
                 <div id="chat-content" class="chat-content mb-2">
                     <div v-for="message in messages" class="es-message-item">
-                        <div class="es-base-message-box cursor-pointer" v-bind:class="{'es-message-alt':message.userId===userId}">
-                            <div class="es-avatar" style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
+                        <div class="es-base-message-box cursor-pointer"
+                            v-bind:class="{'es-message-alt':message.userId===userId}">
+                            <div class="es-avatar"
+                                style="width: 30px; height: 30px; min-width: 30px; min-height: 30px;">
                                 <img v-bind:src="obtainAvatar(message.userId)" class="es-avatar-img">
                             </div>
                             <div class="es-message-body">
@@ -64,7 +74,8 @@
                 <form class="form">
                     <div class="row">
                         <div class="col col-10">
-                            <input type="text" v-bind:disabled="!isConnected" class="form-control" placeholder="请输入发送内容" v-model="message">
+                            <input type="text" v-bind:disabled="!isConnected" class="form-control" placeholder="请输入发送内容"
+                                v-model="message">
                         </div>
                         <button @click="sendMessage" type="button" class="btn btn-primary col ml-2">发送</button>
                     </div>
