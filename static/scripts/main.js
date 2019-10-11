@@ -1,6 +1,41 @@
-let ws = null;
-let WEBSOCKET_URL = "ws://ws-demo.nightelf.org/chat";
-
+const worker = new Worker("./scripts/webworker.js");
+worker.addEventListener("error", e => {
+  console.error(e);
+});
+worker.addEventListener("messageerror", e => {
+  console.error(e);
+});
+worker.addEventListener("message", ({ data }) => {
+  switch (data.command) {
+    case 4:
+      app.isConnected = true;
+      app.loadUsers();
+      app.addUser(app.userId, app.nick);
+      break;
+    case 5:
+    case 6:
+      app.isConnected = false;
+      app.removeUser(app.userId);
+      break;
+    case 7:
+      let message = data.data;
+      switch (message.opcode) {
+        case OPCODES.GROUP:
+          app.messages.push(message.payload);
+          break;
+        case OPCODES.WHOAMI:
+          app.addUser(message.payload.userId, message.payload.nick);
+          break;
+        case OPCODES.CLIENT_LEFT:
+          app.removeUser(message.payload.userId);
+          break;
+        case OPCODES.COMMAND:
+          app.messages.push(message.payload);
+          break;
+      }
+      break;
+  }
+});
 const DEFAULT_AVATARS = [
   "T1j.DTByJT1RCvBVdK.jpg",
   "T18.YTByhT1RCvBVdK.jpg",
@@ -113,39 +148,6 @@ const OPCODES = {
 const COMMANDS = {
   TESTING: 1
 };
-
-function onOpen(event) {
-  app.isConnected = true;
-  app.loadUsers();
-  app.addUser(app.userId, app.nick);
-}
-
-function onClose(event) {
-  app.isConnected = false;
-  app.removeUser(app.userId);
-}
-
-function onMessage(event) {
-  let message = JSON.parse(event.data);
-  switch (message.opcode) {
-    case OPCODES.GROUP:
-      app.messages.push(message.payload);
-      break;
-    case OPCODES.WHOAMI:
-      app.addUser(message.payload.userId, message.payload.nick);
-      break;
-    case OPCODES.CLIENT_LEFT:
-      app.removeUser(message.payload.userId);
-      break;
-    case OPCODES.COMMAND:
-      app.messages.push(message.payload);
-      break;
-  }
-}
-
-function onError(event) {
-  app.isConnected = false;
-}
 let testingInterval = 0;
 let app = new Vue({
   el: "#app-view",
@@ -160,26 +162,28 @@ let app = new Vue({
   },
   methods: {
     connect: function() {
-      ws = new WebSocket(
-        `${WEBSOCKET_URL}?userId=${app.userId}&nick=${encodeURIComponent(
-          app.nick
-        )}`
-      );
-      ws.addEventListener("open", onOpen);
-      ws.addEventListener("close", onClose);
-      ws.addEventListener("message", onMessage);
-      ws.addEventListener("error", onError);
+      axios
+        .post("http://ej-journey.com/api/login", null, {
+          withCredentials: true
+        })
+        .then(() => {
+          worker.postMessage({
+            command: 1,
+            data: { userId: app.userId, nick: app.nick }
+          });
+        });
     },
     disconnect: function() {
-      if (ws) {
-        ws.close(3001, "logout");
-      }
-      // app.isConnected = false;
+      worker.postMessage({ command: 2 });
     },
     loadUsers: function() {
-      axios.get("/api/users").then(res => {
-        this.users = res.data;
-      });
+      axios
+        .get("/api/users", {
+          withCredentials: true
+        })
+        .then(res => {
+          this.users = res.data;
+        });
     },
     addUser: function(userId, nick) {
       this.users.push({
@@ -207,7 +211,7 @@ let app = new Vue({
       };
       this.messages.push(willSendMessage.payload);
       this.message = null;
-      ws.send(JSON.stringify(willSendMessage));
+      worker.postMessage({ command: 3, data: willSendMessage });
     },
     /**
      * 获取用户头像
@@ -217,6 +221,9 @@ let app = new Vue({
         DEFAULT_AVATARS[userId % DEFAULT_AVATARS_LEN]
       }`;
     },
+    /**
+     * 启动压测
+     */
     startTesting: function() {
       if (testingInterval) {
         clearInterval(testingInterval);
@@ -231,10 +238,13 @@ let app = new Vue({
           command: COMMANDS.TESTING,
           opcode: OPCODES.COMMAND
         };
-        ws.send(JSON.stringify(willSendMessage));
+        worker.postMessage({ command: 3, data: willSendMessage });
       }, 50);
       app.testing = true;
     },
+    /**
+     * 停止压测
+     */
     stopTesting: function() {
       if (testingInterval) {
         clearInterval(testingInterval);

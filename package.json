@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/redwolf0302/websocket-demo#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
     "express": "^4.16.3",
     "ws": "^5.1.1"
   },

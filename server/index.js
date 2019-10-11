@@ -1,7 +1,9 @@
 const WebSocket = require("ws");
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const http = require("http");
 const url = require("url");
+const cors = require("cors");
 const OPCODES = {
   GROUP: 1,
   COMMAND: 2,
@@ -24,6 +26,8 @@ const launch = () => {
   //配置express服务
   const app = new express();
   const server = http.createServer(app);
+  app.use(cors({ origin: true, credentials: true }));
+  app.use(cookieParser())
   app.all("/*", express.static("static"));
   //配置WebSocket
   const wss = new WebSocket.Server({
@@ -31,7 +35,16 @@ const launch = () => {
     server
   });
 
+  app.post("/api/login", (req, res) => {
+    res.cookie("_tk", "sjsjsjsjsjsjsjsj", {
+      domain: ".ej-journey.com",
+      path: "/",
+      maxAge: 3600
+    });
+    res.json(true);
+  });
   app.get("/api/users", (req, res) => {
+    console.log(req.cookies);
     let users = [];
     wss.clients.forEach(ws => {
       users.push({
@@ -102,6 +115,7 @@ const launch = () => {
   }
 
   wss.on("connection", (ws, req) => {
+    console.log(req.headers.cookie);
     const {
       query: { userId, nick }
     } = url.parse(req.url, true);
