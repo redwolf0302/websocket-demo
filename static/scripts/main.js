@@ -163,7 +163,7 @@ let app = new Vue({
   methods: {
     connect: function() {
       axios
-        .post("http://ej-journey.com/api/login", null, {
+        .post("/api/login", null, {
           withCredentials: true
         })
         .then(() => {
@@ -217,7 +217,7 @@ let app = new Vue({
      * 获取用户头像
      */
     obtainAvatar: function(userId) {
-      return `http://static.jk.cn/${
+      return `//static.jk.cn/${
         DEFAULT_AVATARS[userId % DEFAULT_AVATARS_LEN]
       }`;
     },
